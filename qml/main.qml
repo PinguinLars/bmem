@@ -1,58 +1,96 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Window 2.12
+import QtQuick.Layouts 2.12
 
-// ANCHOR: book_qml_import
-// This must match the uri and version
-// specified in the qml_module in the build.rs script.
-import com.kdab.cxx_qt.demo 1.0
-// ANCHOR_END: book_qml_import
+import me.ashypinguin.bmem 1.0
 
 ApplicationWindow {
-    id: root
-    height: 480
-    title: qsTr("Hello World")
-    visible: true
-    width: 640
-    color: palette.window
+  id: root
+  title: qsTr("Biologie Memory")
+  visible: true
+  color: palette.window
 
-    readonly property MyObject myObject: MyObject {
-        number: 1
-        string: qsTr("My String with my number: %1").arg(number)
+  RowLayout {
+    anchors.fill: parent
+    spacing: 0
+
+    GridLayout {
+      rows: 6 
+      columns: 7
+      Layout.fillHeight: true
+      Layout.preferredWidth: parent.width * 0.8
+      columnSpacing: 5
+      rowSpacing: 5
+
+      Repeater {
+        model: 42
+
+        Button {
+          Layout.fillWidth: true
+          Layout.fillHeight: true
+          text: index + 1
+
+          onClicked: {
+            console.log("Button " + (index + 1) + " clicked")
+          }
+        }
+      }
     }
 
-    Column {
-        anchors.fill: parent
-        anchors.margins: 10
-        spacing: 10
+    ColumnLayout {
+      Layout.fillHeight: true
+      Layout.preferredWidth: parent.width * 0.2
 
-        Label {
-            text: qsTr("Number: %1").arg(root.myObject.number)
-            color: palette.text
+      Rectangle {
+        Layout.preferredWidth: scoreText.implicitWidth
+        Layout.preferredHeight: scoreText.implicitHeight
+        Layout.fillWidth: true
+        // Layout.fillHeight: true
+
+        Text {
+          id: scoreText
+          
+          anchors.fill: parent
+          text: "Your score: 21/21\nComputer score: 0/21"
         }
+      }
 
-        Label {
-            text: qsTr("String: %1").arg(root.myObject.string)
-            color: palette.text
+      Rectangle {
+        Layout.preferredWidth: turnText.implicitWidth
+        Layout.preferredHeight: turnText.implicitHeight
+        Layout.fillWidth: true
+        // Layout.fillHeight: true
+
+        Text {
+          id: turnText
+          anchors.fill: parent
+          text: "Turn: computer" // or you
         }
+      }
 
-        Button {
-            text: qsTr("Increment Number")
+      Rectangle {
+        Layout.preferredWidth: diffText.implicitWidth
+        Layout.preferredHeight: diffText.implicitHeight
+        Layout.fillWidth: true
+        // Layout.fillHeight: true
 
-            onClicked: root.myObject.incrementNumber()
+        Text {
+          id: diffText
+          anchors.fill: parent
+          text: "Moeilijkheids: 50%"
         }
+      }
 
-        Button {
-            text: qsTr("Say Hi!")
+      Text {
+        text: "Biologie memory (bmem) is free software licensed under the GPL license"
 
-            onClicked: root.myObject.sayHi(root.myObject.string, root.myObject.number)
-        }
+        Layout.fillWidth: true
+        horizontalAlignment: Text.AlignHCenter
 
-        Button {
-            text: qsTr("Quit")
-
-            onClicked: Qt.quit()
-        }
+        font.pointSize: 8
+        wrapMode: Text.WordWrap
+      }
     }
+  }
 }
-// ANCHOR_END: book_main_qml

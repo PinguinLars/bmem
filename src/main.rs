@@ -10,7 +10,7 @@ fn main() {
     let mut engine = QQmlApplicationEngine::new();
 
     if let Some(engine) = engine.as_mut() {
-        engine.load(&QUrl::from("qrc:/qt/qml/com/kdab/cxx_qt/demo/qml/main.qml"));
+        engine.load(&QUrl::from("qrc:/qt/qml/me/ashypinguin/bmem/qml/main.qml"));
     }
 
     if let Some(engine) = engine.as_mut() {
