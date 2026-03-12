@@ -43,44 +43,70 @@ ApplicationWindow {
       Layout.preferredWidth: parent.width * 0.2
 
       Rectangle {
-        Layout.preferredWidth: scoreText.implicitWidth
-        Layout.preferredHeight: scoreText.implicitHeight
+        Layout.preferredWidth: diffText.implicitWidth
+        Layout.preferredHeight: diffText.implicitHeight + 30
         Layout.fillWidth: true
-        // Layout.fillHeight: true
+
+        topLeftRadius: 20
+        topRightRadius: 20
+        bottomLeftRadius: 0
+        bottomRightRadius: 0
 
         Text {
           id: scoreText
           
           anchors.fill: parent
+          anchors.leftMargin: 5
+          anchors.rightMargin: 5
+          anchors.topMargin: 10
+          anchors.bottomMargin: 5
+          horizontalAlignment: Text.AlignLeft
+
           text: "Your score: 21/21\nComputer score: 0/21"
         }
       }
 
       Rectangle {
         Layout.preferredWidth: turnText.implicitWidth
-        Layout.preferredHeight: turnText.implicitHeight
+        Layout.preferredHeight: turnText.implicitHeight + 10
         Layout.fillWidth: true
-        // Layout.fillHeight: true
 
         Text {
           id: turnText
+
           anchors.fill: parent
+          anchors.margins: 5
+          horizontalAlignment: Text.AlignLeft
+
           text: "Turn: computer" // or you
         }
       }
 
       Rectangle {
         Layout.preferredWidth: diffText.implicitWidth
-        Layout.preferredHeight: diffText.implicitHeight
+        Layout.preferredHeight: diffText.implicitHeight + 15
         Layout.fillWidth: true
-        // Layout.fillHeight: true
+
+        topLeftRadius: 0
+        topRightRadius: 0
+        bottomLeftRadius: 20
+        bottomRightRadius: 20
 
         Text {
           id: diffText
+
           anchors.fill: parent
+          anchors.leftMargin: 5
+          anchors.rightMargin: 5
+          anchors.topMargin: 5
+          anchors.bottomMargin: 10
+          horizontalAlignment: Text.AlignLeft
+
           text: "Moeilijkheids: 50%"
         }
       }
+
+      Item { Layout.fillHeight: true }
 
       Text {
         text: "Biologie memory (bmem) is free software licensed under the GPL license"
