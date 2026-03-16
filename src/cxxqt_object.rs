@@ -1,3 +1,20 @@
+/*
+ * Bmem: a memory game
+ * Copyright (C) 2026 AshyPinguin
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 #[cxx_qt::bridge]
 pub mod qobject {
     unsafe extern "C++" {
@@ -9,40 +26,129 @@ pub mod qobject {
     extern "RustQt" {
         #[qobject]
         #[qml_element]
-        #[qproperty(i32, number)]
-        #[qproperty(QString, string)]
-        #[namespace = "my_object"]
-        type MyObject = super::MyObjectRust;
+        #[qproperty(i32, number_of_cards)]
+        #[qproperty(bool, your_turn)]
+        #[namespace = "deck"]
+        type Deck = super::DeckRust;
 
         #[qinvokable]
-        #[cxx_name = "incrementNumber"]
-        fn increment_number(self: Pin<&mut Self>);
+        #[cxx_name = "getCardText"]
+        fn get_card_text(&self, index: i32) -> QString;
 
         #[qinvokable]
-        #[cxx_name = "sayHi"]
-        fn say_hi(&self, string: &QString, number: i32);
+        #[cxx_name = "handleClickEvent"]
+        fn handle_click_event(&self, index: i32);
     }
 }
 
-use core::pin::Pin;
 use cxx_qt_lib::QString;
+use rand::{RngExt, seq::SliceRandom};
 
-/// The Rust struct for the QObject
-#[derive(Default)]
-pub struct MyObjectRust {
-    number: i32,
-    string: QString,
+/// The Rust struct for the Deck Qt object
+pub struct DeckRust {
+    number_of_cards: i32,
+    cards: Vec<Card>,
+    your_turn: bool,
 }
 
-impl qobject::MyObject {
-    /// Increment the number Q_PROPERTY
-    pub fn increment_number(self: Pin<&mut Self>) {
-        let previous = *self.number();
-        self.set_number(previous + 1);
+impl qobject::Deck {
+    /// Get the text that the card needs to hold as a Qt String
+    pub fn get_card_text(&self, index: i32) -> QString {
+        self.cards
+            .get(index as usize)
+            .expect("Index is out of range!")
+            .string
+            .clone()
     }
 
-    /// Print a log message with the given string and number
-    pub fn say_hi(&self, string: &QString, number: i32) {
-        println!("Hi from Rust! String is '{string}' and number is {number}");
+    /// Click handler for qml
+    fn handle_click_event(&self, index: i32) {
+        todo!()
+    }
+}
+
+impl Default for DeckRust {
+    /// Constructor called by cxx-qt
+    fn default() -> Self {
+        let card_pairs = vec![
+            Card::new_unique("Genotype".into(), "Informatie voor de erfelijke eigenschappen van een organisme".into()),
+            Card::new_unique("Fenotype".into(), "Eigenschappen van een organisme, waaronder het uiterlijk".into()),
+            Card::new_unique("Lichaamscel".into(), "Cellen waaruit je lichaam is opgebouwd".into()),
+            Card::new_unique("Celdeling".into(), "Vorming van nieuwe cellen".into()),
+            Card::new_unique("Dochtercel".into(), "Cel die ontstaat uit een moedercel tijdens celdeling".into()),
+            Card::new_unique("DNA".into(), "Stof die informatie bevat voor erfelijke eigenschappen".into()),
+            Card::new_unique("Gen".into(), "Stukjes DNA die samen de informatie bevatten voor een erfelijke eigenschap".into()),
+            Card::new_unique("Chromosomen".into(), "Lange dunne draden in de celkern".into()),
+            Card::new_unique("Geslachtscel".into(), "Cellen waarbij de chromosomen enkelvoudig voorkomen".into()),
+            Card::new_unique("Meiose".into(), "Celdeling waarbij de chromosomen verdeeld worden over de dochtercellen (geslachtscellen)".into()),
+            Card::new_unique("Chromosomen paar".into(), "Twee chromosomen die bestaan uit dezelfde genen vormen een paar".into()),
+            Card::new_unique("Allelenpaar".into(), "Twee allelen van een gen".into()),
+            Card::new_unique("Allel".into(), "Informatie in een gen".into()),
+            Card::new_unique("Eiwit".into(), "Stof die voor een groot deel de kleur, vorm en werking van je lichaam regelt".into()),
+            Card::new_unique("Dominant allel".into(), "Allel dat altijd tot uiting komt in het fenotype als er minimaal een is".into()),
+            Card::new_unique("Recessief allel".into(), "Allel dat alleen tot uiting komt in het fenotype wanneer er geen dominant allel aanwezig is".into()),
+            Card::new_unique("Homozygoot".into(), "Het allelenpaar voor een eigenschap bestaat uit twee gelijke allelen".into()),
+            Card::new_unique("Heterozygoot".into(), "Het allelenpaar voor een eigenschap bestaat uit twee ongelijke allelen".into()),
+            Card::new_unique("Base".into(), "A, T, C en G waar DNA uit is opgebouwd".into()),
+            Card::new_unique("Basenpaar".into(), "Paar van de basen A-T of C-G".into()),
+            Card::new_unique("Nucleotidenvolgorde".into(), "desp".into()),
+        ];
+
+        let mut cards: Vec<Card> = Vec::new();
+        let mut rng = rand::rng();
+        for i in card_pairs {
+            cards.push(i.0);
+            cards.push(i.1);
+        }
+        cards.shuffle(&mut rng);
+
+        let number_of_cards = cards.len() as i32;
+
+        Self {
+            cards,
+            number_of_cards,
+            your_turn: rng.random_bool(0.5)
+        }
+    }
+}
+
+/// The memory card
+///
+/// For matching pairs use Card::new_match
+/// For unique pairs use Card::new_unique
+#[derive(Debug)]
+pub struct Card {
+    string: QString,
+    matching_string: QString,
+    completed: bool,
+}
+
+impl Card {
+    pub fn new_match(string: String) -> (Self, Self) {
+        let card = Card {
+            string: (&string).into(),
+            matching_string: (&string).into(),
+            completed: false,
+        };
+        let matching_card = Card {
+            string: (&string).into(),
+            matching_string: (&string).into(),
+            completed: false,
+        };
+        (card, matching_card)
+    }
+
+    pub fn new_unique(string: String, matching_string: String) -> (Self, Self) {
+        let card = Card {
+            string: (&string).into(),
+            matching_string: (&matching_string).into(),
+            completed: false,
+        };
+        let matching_card = Card {
+            string: (&matching_string).into(),
+            matching_string: (&string).into(),
+            completed: false,
+        };
+        (card, matching_card)
     }
 }

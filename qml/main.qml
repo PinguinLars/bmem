@@ -1,3 +1,21 @@
+/*
+ * Bmem: a memory game
+ * Copyright (C) 2026 AshyPinguin
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Window 2.12
@@ -11,9 +29,11 @@ ApplicationWindow {
   visible: true
   color: palette.window
 
+  readonly property Deck deck: Deck {}
+
   RowLayout {
     anchors.fill: parent
-    spacing: 0
+    spacing: 3
 
     GridLayout {
       rows: 6 
@@ -24,15 +44,28 @@ ApplicationWindow {
       rowSpacing: 5
 
       Repeater {
-        model: 42
+        model: root.deck.number_of_cards
 
-        Button {
+        Rectangle {
           Layout.fillWidth: true
           Layout.fillHeight: true
-          text: index + 1
+          color: ma.containsMouse ? "#607D8B" : "#9E9E9E"
+          radius: 10
 
-          onClicked: {
-            console.log("Button " + (index + 1) + " clicked")
+          MouseArea {
+            id: ma
+            anchors.fill: parent
+            hoverEnabled: true
+            onClicked: root.deck.handleClickEvent(index)
+          }
+
+          Text {
+            anchors.fill: parent
+            text: root.deck.getCardText(index)
+
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+            wrapMode: Text.WordWrap
           }
         }
       }
@@ -54,7 +87,7 @@ ApplicationWindow {
 
         Text {
           id: scoreText
-          
+
           anchors.fill: parent
           anchors.leftMargin: 5
           anchors.rightMargin: 5
@@ -62,7 +95,7 @@ ApplicationWindow {
           anchors.bottomMargin: 5
           horizontalAlignment: Text.AlignLeft
 
-          text: "Your score: 21/21\nComputer score: 0/21"
+          text: `Your score: ${root.deck.number_of_cards/2}/${root.deck.number_of_cards/2}\nComputer score: 0/${root.deck.number_of_cards/2}`
         }
       }
 
@@ -78,7 +111,7 @@ ApplicationWindow {
           anchors.margins: 5
           horizontalAlignment: Text.AlignLeft
 
-          text: "Turn: computer" // or you
+          text: `Turn: ${root.deck.your_turn ? "you" : "computer"}` // or you
         }
       }
 
@@ -109,7 +142,7 @@ ApplicationWindow {
       Item { Layout.fillHeight: true }
 
       Text {
-        text: "Biologie memory (bmem) is free software licensed under the GPL license"
+        text: "Biologie memory (bmem) is free software licensed under the GPLv3 (or later) license"
 
         Layout.fillWidth: true
         horizontalAlignment: Text.AlignHCenter
