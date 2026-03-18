@@ -21,6 +21,9 @@ pub mod qobject {
         include!("cxx-qt-lib/qstring.h");
         /// An alias to the QString type
         type QString = cxx_qt_lib::QString;
+
+        include!("cxx-qt-lib/qset.h");
+        type QSet_i32 = cxx_qt_lib::QSet<i32>;
     }
 
     extern "RustQt" {
@@ -28,6 +31,8 @@ pub mod qobject {
         #[qml_element]
         #[qproperty(i32, number_of_cards)]
         #[qproperty(bool, your_turn)]
+        #[qproperty(QSet_i32, cards_shown)]
+        #[qproperty(bool, update)]
         #[namespace = "deck"]
         type Deck = super::DeckRust;
 
@@ -37,11 +42,17 @@ pub mod qobject {
 
         #[qinvokable]
         #[cxx_name = "handleClickEvent"]
-        fn handle_click_event(&self, index: i32);
+        fn handle_click_event(self: Pin<&mut Self>, index: i32);
+
+        #[qinvokable]
+        #[cxx_name = "isCardShown"]
+        fn is_card_shown(&self, index: i32) -> bool;
     }
 }
 
-use cxx_qt_lib::QString;
+use cxx_qt_lib::{QSet, QString};
+use core::pin::Pin;
+use std::panic;
 use rand::{RngExt, seq::SliceRandom};
 
 /// The Rust struct for the Deck Qt object
@@ -49,6 +60,11 @@ pub struct DeckRust {
     number_of_cards: i32,
     cards: Vec<Card>,
     your_turn: bool,
+    cards_shown: QSet<i32>,
+    /// Property to force an update of text
+    /// DATA IN IT IS NON CONSINTANT DON'T USE IT IN FUNCTIONS
+    /// expect for rerenders
+    update: bool,
 }
 
 impl qobject::Deck {
@@ -62,8 +78,22 @@ impl qobject::Deck {
     }
 
     /// Click handler for qml
-    fn handle_click_event(&self, index: i32) {
-        todo!()
+    fn handle_click_event(mut self: Pin<&mut Self>, index: i32) {
+        let mut cards_shown = self.cards_shown().clone();
+        cards_shown.insert(index);
+        self.as_mut().set_cards_shown(cards_shown);
+
+        self.update_changed();
+    }
+
+    /// Helper function for cards in qml
+    ///
+    /// Wrapper around:
+    /// ```
+    /// self.cards_shown.contains(&index)
+    /// ```
+    fn is_card_shown(&self, index: i32) -> bool {
+        self.cards_shown.contains(&index)
     }
 }
 
@@ -107,7 +137,9 @@ impl Default for DeckRust {
         Self {
             cards,
             number_of_cards,
-            your_turn: rng.random_bool(0.5)
+            your_turn: rng.random_bool(0.5),
+            cards_shown: QSet::default(),
+            update: true,
         }
     }
 }

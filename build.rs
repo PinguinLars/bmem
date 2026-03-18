@@ -8,5 +8,5 @@ fn main() {
 
     // non rust project files
     println!("cargo::rerun-if-changed=build.rs");
-    println!("cargo::rerun-if-changed=qml");
+    println!("cargo::rerun-if-changed=qml/main.qml");
 }

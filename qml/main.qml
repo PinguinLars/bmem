@@ -16,6 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// pragma ComponentBehavior: Bound
+
 import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Window 2.12
@@ -61,7 +63,10 @@ ApplicationWindow {
 
           Text {
             anchors.fill: parent
-            text: root.deck.getCardText(index)
+            text: {
+              root.deck.update; // to force an update, because yes (read the doc comment of the type in rust)
+              return root.deck.isCardShown(index) ? root.deck.getCardText(index) : ''
+            }
 
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
