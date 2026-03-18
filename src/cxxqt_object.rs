@@ -52,14 +52,18 @@ pub mod qobject {
 
 use cxx_qt_lib::{QSet, QString};
 use core::pin::Pin;
-use std::panic;
 use rand::{RngExt, seq::SliceRandom};
 
 /// The Rust struct for the Deck Qt object
 pub struct DeckRust {
+    /// Length of `cards`
+    /// Unique property because then qt can do updates
     number_of_cards: i32,
+    /// The vector where all the cards are stored
     cards: Vec<Card>,
+    /// If it is your (the players) turn
     your_turn: bool,
+    /// A set of which card should be shown
     cards_shown: QSet<i32>,
     /// Property to force an update of text
     /// DATA IN IT IS NON CONSINTANT DON'T USE IT IN FUNCTIONS
@@ -150,12 +154,16 @@ impl Default for DeckRust {
 /// For unique pairs use Card::new_unique
 #[derive(Debug)]
 pub struct Card {
+    /// String that is the value of this card
     string: QString,
+    /// String of the card this card matches with (can be the same)
     matching_string: QString,
+    /// If the pair is completed
     completed: bool,
 }
 
 impl Card {
+    /// Generate new matching pair (same `string` and `matching_string` on both of them)
     pub fn new_match(string: String) -> (Self, Self) {
         let card = Card {
             string: (&string).into(),
@@ -170,6 +178,7 @@ impl Card {
         (card, matching_card)
     }
 
+    /// Generate new unique pair of cards
     pub fn new_unique(string: String, matching_string: String) -> (Self, Self) {
         let card = Card {
             string: (&string).into(),
