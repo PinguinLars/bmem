@@ -15,6 +15,35 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+use std::sync::LazyLock;
+
+pub static CARD_PAIRS: LazyLock<Vec<(Card, Card)>> = LazyLock::new(|| {
+    vec![
+            Card::new_unique("Genotype".into(), "Informatie voor de erfelijke eigenschappen van een organisme".into()),
+            Card::new_unique("Fenotype".into(), "Eigenschappen van een organisme, waaronder het uiterlijk".into()),
+            Card::new_unique("Lichaamscel".into(), "Cellen waaruit je lichaam is opgebouwd".into()),
+            Card::new_unique("Celdeling".into(), "Vorming van nieuwe cellen".into()),
+            Card::new_unique("Dochtercel".into(), "Cel die ontstaat uit een moedercel tijdens celdeling".into()),
+            Card::new_unique("DNA".into(), "Stof die informatie bevat voor erfelijke eigenschappen".into()),
+            Card::new_unique("Gen".into(), "Stukjes DNA die samen de informatie bevatten voor een erfelijke eigenschap".into()),
+            Card::new_unique("Chromosomen".into(), "Lange dunne draden in de celkern".into()),
+            Card::new_unique("Geslachtscel".into(), "Cellen waarbij de chromosomen enkelvoudig voorkomen".into()),
+            Card::new_unique("Meiose".into(), "Celdeling waarbij de chromosomen verdeeld worden over de dochtercellen (geslachtscellen)".into()),
+            Card::new_unique("Chromosomen paar".into(), "Twee chromosomen die bestaan uit dezelfde genen vormen een paar".into()),
+            Card::new_unique("Allelenpaar".into(), "Twee allelen van een gen".into()),
+            Card::new_unique("Allel".into(), "Informatie in een gen".into()),
+            Card::new_unique("Eiwit".into(), "Stof die voor een groot deel de kleur, vorm en werking van je lichaam regelt".into()),
+            Card::new_unique("Dominant allel".into(), "Allel dat altijd tot uiting komt in het fenotype als er minimaal een is".into()),
+            Card::new_unique("Recessief allel".into(), "Allel dat alleen tot uiting komt in het fenotype wanneer er geen dominant allel aanwezig is".into()),
+            Card::new_unique("Homozygoot".into(), "Het allelenpaar voor een eigenschap bestaat uit twee gelijke allelen".into()),
+            Card::new_unique("Heterozygoot".into(), "Het allelenpaar voor een eigenschap bestaat uit twee ongelijke allelen".into()),
+            Card::new_unique("Base".into(), "A, T, C en G waar DNA uit is opgebouwd".into()),
+            Card::new_unique("Basenpaar".into(), "Paar van de basen A-T of C-G".into()),
+            Card::new_unique("Nucleotidenvolgorde".into(), "desp".into()),
+        ]
+});
+
 #[cxx_qt::bridge]
 pub mod qobject {
     unsafe extern "C++" {
@@ -90,7 +119,9 @@ impl qobject::Deck {
 
     /// Click handler for qml
     fn handle_click_event(mut self: Pin<&mut Self>, index: i32) {
-        if !self.your_turn { return; }
+        if !self.your_turn {
+            return;
+        }
 
         let mut cards_shown = self.cards_shown().clone();
         if cards_shown.len() >= 2 {
@@ -142,33 +173,9 @@ impl qobject::Deck {
 impl Default for DeckRust {
     /// Constructor called by cxx-qt
     fn default() -> Self {
-        let card_pairs = vec![
-            Card::new_unique("Genotype".into(), "Informatie voor de erfelijke eigenschappen van een organisme".into()),
-            Card::new_unique("Fenotype".into(), "Eigenschappen van een organisme, waaronder het uiterlijk".into()),
-            Card::new_unique("Lichaamscel".into(), "Cellen waaruit je lichaam is opgebouwd".into()),
-            Card::new_unique("Celdeling".into(), "Vorming van nieuwe cellen".into()),
-            Card::new_unique("Dochtercel".into(), "Cel die ontstaat uit een moedercel tijdens celdeling".into()),
-            Card::new_unique("DNA".into(), "Stof die informatie bevat voor erfelijke eigenschappen".into()),
-            Card::new_unique("Gen".into(), "Stukjes DNA die samen de informatie bevatten voor een erfelijke eigenschap".into()),
-            Card::new_unique("Chromosomen".into(), "Lange dunne draden in de celkern".into()),
-            Card::new_unique("Geslachtscel".into(), "Cellen waarbij de chromosomen enkelvoudig voorkomen".into()),
-            Card::new_unique("Meiose".into(), "Celdeling waarbij de chromosomen verdeeld worden over de dochtercellen (geslachtscellen)".into()),
-            Card::new_unique("Chromosomen paar".into(), "Twee chromosomen die bestaan uit dezelfde genen vormen een paar".into()),
-            Card::new_unique("Allelenpaar".into(), "Twee allelen van een gen".into()),
-            Card::new_unique("Allel".into(), "Informatie in een gen".into()),
-            Card::new_unique("Eiwit".into(), "Stof die voor een groot deel de kleur, vorm en werking van je lichaam regelt".into()),
-            Card::new_unique("Dominant allel".into(), "Allel dat altijd tot uiting komt in het fenotype als er minimaal een is".into()),
-            Card::new_unique("Recessief allel".into(), "Allel dat alleen tot uiting komt in het fenotype wanneer er geen dominant allel aanwezig is".into()),
-            Card::new_unique("Homozygoot".into(), "Het allelenpaar voor een eigenschap bestaat uit twee gelijke allelen".into()),
-            Card::new_unique("Heterozygoot".into(), "Het allelenpaar voor een eigenschap bestaat uit twee ongelijke allelen".into()),
-            Card::new_unique("Base".into(), "A, T, C en G waar DNA uit is opgebouwd".into()),
-            Card::new_unique("Basenpaar".into(), "Paar van de basen A-T of C-G".into()),
-            Card::new_unique("Nucleotidenvolgorde".into(), "desp".into()),
-        ];
-
         let mut cards: Vec<Card> = Vec::new();
         let mut rng = rand::rng();
-        for i in card_pairs {
+        for i in (*CARD_PAIRS).clone() {
             cards.push(i.0);
             cards.push(i.1);
         }
@@ -192,7 +199,7 @@ impl Default for DeckRust {
 ///
 /// For matching pairs use Card::new_match
 /// For unique pairs use Card::new_unique
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Card {
     /// String that is the value of this card
     string: QString,
