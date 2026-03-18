@@ -90,6 +90,8 @@ impl qobject::Deck {
 
     /// Click handler for qml
     fn handle_click_event(mut self: Pin<&mut Self>, index: i32) {
+        if !self.your_turn { return; }
+
         let mut cards_shown = self.cards_shown().clone();
         if cards_shown.len() >= 2 {
             let mut first_card: Option<&Card> = None;
@@ -122,6 +124,7 @@ impl qobject::Deck {
             }
 
             cards_shown.clear();
+            self.as_mut().set_your_turn(false);
         } else {
             cards_shown.insert(index);
         }
