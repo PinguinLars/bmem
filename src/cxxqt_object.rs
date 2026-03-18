@@ -33,6 +33,8 @@ pub mod qobject {
         #[qproperty(bool, your_turn)]
         #[qproperty(QSet_i32, cards_shown)]
         #[qproperty(bool, update)]
+        #[qproperty(i32, your_score)]
+        #[qproperty(i32, computer_score)]
         #[namespace = "deck"]
         type Deck = super::DeckRust;
 
@@ -50,9 +52,10 @@ pub mod qobject {
     }
 }
 
+use cxx_qt::CxxQtType;
 use cxx_qt_lib::{QSet, QString};
-use core::pin::Pin;
-use rand::{RngExt, seq::SliceRandom};
+use rand::{seq::SliceRandom, RngExt};
+use std::pin::Pin;
 
 /// The Rust struct for the Deck Qt object
 pub struct DeckRust {
@@ -69,6 +72,10 @@ pub struct DeckRust {
     /// DATA IN IT IS NON CONSINTANT DON'T USE IT IN FUNCTIONS
     /// expect for rerenders
     update: bool,
+    /// Players score
+    your_score: i32,
+    /// Computers score
+    computer_score: i32,
 }
 
 impl qobject::Deck {
@@ -84,7 +91,40 @@ impl qobject::Deck {
     /// Click handler for qml
     fn handle_click_event(mut self: Pin<&mut Self>, index: i32) {
         let mut cards_shown = self.cards_shown().clone();
-        cards_shown.insert(index);
+        if cards_shown.len() >= 2 {
+            let mut first_card: Option<&Card> = None;
+            let mut second_card: Option<&Card> = None;
+            let mut first_card_index: Option<i32> = None;
+            let mut second_card_index: Option<i32> = None;
+
+            for (i, card_index) in cards_shown.into_iter().enumerate() {
+                if i == 0 {
+                    first_card = Some(&self.cards[*card_index as usize]);
+                    first_card_index = Some(*card_index);
+                } else if i == 1 {
+                    second_card = Some(&self.cards[*card_index as usize]);
+                    second_card_index = Some(*card_index);
+                } else {
+                    panic!("Function reached illegal branch!");
+                }
+            }
+
+            if first_card.unwrap().string == second_card.unwrap().matching_string
+                && first_card.unwrap().matching_string == second_card.unwrap().string
+                && !first_card.unwrap().completed
+                && !second_card.unwrap().completed
+            {
+                let your_score = *self.your_score();
+                self.as_mut().set_your_score(your_score + 1);
+                self.as_mut().rust_mut().cards[first_card_index.unwrap() as usize].completed = true;
+                self.as_mut().rust_mut().cards[second_card_index.unwrap() as usize].completed =
+                    true;
+            }
+
+            cards_shown.clear();
+        } else {
+            cards_shown.insert(index);
+        }
         self.as_mut().set_cards_shown(cards_shown);
 
         self.update_changed();
@@ -144,6 +184,8 @@ impl Default for DeckRust {
             your_turn: rng.random_bool(0.5),
             cards_shown: QSet::default(),
             update: true,
+            your_score: 0,
+            computer_score: 0,
         }
     }
 }

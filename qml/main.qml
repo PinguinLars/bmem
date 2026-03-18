@@ -98,7 +98,7 @@ ApplicationWindow {
           anchors.bottomMargin: 5
           horizontalAlignment: Text.AlignLeft
 
-          text: `Your score: ${root.deck.number_of_cards/2}/${root.deck.number_of_cards/2}\nComputer score: 0/${root.deck.number_of_cards/2}`
+          text: `Your score: ${root.deck.your_score}/${root.deck.number_of_cards/2}\nComputer score: ${root.deck.computer_score}/${root.deck.number_of_cards/2}`
         }
       }
 
