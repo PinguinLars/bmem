@@ -131,13 +131,8 @@ impl qobject::Deck {
     }
 
     /// Helper function for cards in qml
-    ///
-    /// Wrapper around:
-    /// ```
-    /// self.cards_shown.contains(&index)
-    /// ```
     fn is_card_shown(&self, index: i32) -> bool {
-        self.cards_shown.contains(&index)
+        self.cards_shown.contains(&index) || self.cards[index as usize].completed
     }
 }
 
