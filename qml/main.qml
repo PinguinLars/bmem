@@ -82,6 +82,7 @@ ApplicationWindow {
         Layout.preferredWidth: diffText.implicitWidth
         Layout.preferredHeight: diffText.implicitHeight + 30
         Layout.fillWidth: true
+        color: "#F4F4F4"
 
         topLeftRadius: 20
         topRightRadius: 20
@@ -106,6 +107,15 @@ ApplicationWindow {
         Layout.preferredWidth: turnText.implicitWidth
         Layout.preferredHeight: turnText.implicitHeight + 10
         Layout.fillWidth: true
+        color: maTurn.containsMouse && !root.deck.yourTurn ? "#9E9E9E" : "#FFFFFF"
+
+
+        MouseArea {
+          id: maTurn
+          anchors.fill: parent
+          hoverEnabled: true
+          onClicked: root.deck.handleTurnEvent()
+        }
 
         Text {
           id: turnText
@@ -122,6 +132,7 @@ ApplicationWindow {
         Layout.preferredWidth: diffText.implicitWidth
         Layout.preferredHeight: diffText.implicitHeight + 15
         Layout.fillWidth: true
+        color: "#F4F4F4"
 
         topLeftRadius: 0
         topRightRadius: 0

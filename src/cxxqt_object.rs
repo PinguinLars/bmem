@@ -21,6 +21,8 @@ use cxx_qt_lib::{QSet, QString};
 use rand::{seq::SliceRandom, RngExt};
 use std::{pin::Pin, sync::LazyLock};
 
+use crate::computer::Computer;
+
 pub static CARD_PAIRS: LazyLock<Vec<(Card, Card)>> = LazyLock::new(|| {
     vec![
             Card::new_unique("Genotype".into(), "Informatie voor de erfelijke eigenschappen van een organisme".into()),
@@ -43,7 +45,7 @@ pub static CARD_PAIRS: LazyLock<Vec<(Card, Card)>> = LazyLock::new(|| {
             Card::new_unique("Heterozygoot".into(), "Het allelenpaar voor een eigenschap bestaat uit twee ongelijke allelen".into()),
             Card::new_unique("Base".into(), "A, T, C en G waar DNA uit is opgebouwd".into()),
             Card::new_unique("Basenpaar".into(), "Paar van de basen A-T of C-G".into()),
-            Card::new_unique("Nucleotidenvolgorde".into(), "desp".into()),
+            Card::new_unique("Nucleotidenvolgorde".into(), "De volgorde van de basenparen".into()),
         ]
 });
 
@@ -75,6 +77,10 @@ pub mod qobject {
         fn get_card_text(&self, index: i32) -> QString;
 
         #[qinvokable]
+        #[cxx_name = "handleTurnEvent"]
+        fn handle_turn_event(self: Pin<&mut Self>);
+
+        #[qinvokable]
         #[cxx_name = "handleClickEvent"]
         fn handle_click_event(self: Pin<&mut Self>, index: i32);
 
@@ -103,6 +109,8 @@ pub struct DeckRust {
     your_score: i32,
     /// Computers score
     computer_score: i32,
+    /// Computer instance to use
+    computer: Computer,
 }
 
 impl qobject::Deck {
@@ -166,6 +174,56 @@ impl qobject::Deck {
     fn is_card_shown(&self, index: i32) -> bool {
         self.cards_shown.contains(&index) || self.cards[index as usize].completed
     }
+
+    /// Helper function for the computer part
+    fn handle_turn_event(mut self: Pin<&mut Self>) {
+        let number_of_cards = *self.number_of_cards();
+
+        let mut cards_shown = self.cards_shown().clone();
+        if self.cards_shown.len() >= 2 {
+            let mut first_card: Option<&Card> = None;
+            let mut second_card: Option<&Card> = None;
+            let mut first_card_index: Option<i32> = None;
+            let mut second_card_index: Option<i32> = None;
+
+            for (i, card_index) in cards_shown.into_iter().enumerate() {
+                if i == 0 {
+                    first_card = Some(&self.cards[*card_index as usize]);
+                    first_card_index = Some(*card_index);
+                } else if i == 1 {
+                    second_card = Some(&self.cards[*card_index as usize]);
+                    second_card_index = Some(*card_index);
+                } else {
+                    panic!("Function reached illegal branch!");
+                }
+            }
+
+            if first_card.unwrap().string == second_card.unwrap().matching_string
+                && first_card.unwrap().matching_string == second_card.unwrap().string
+                && !first_card.unwrap().completed
+                && !second_card.unwrap().completed
+            {
+                let computer_score = *self.computer_score();
+                self.as_mut().set_computer_score(computer_score + 1);
+                self.as_mut().rust_mut().cards[first_card_index.unwrap() as usize].completed = true;
+                self.as_mut().rust_mut().cards[second_card_index.unwrap() as usize].completed =
+                    true;
+            }
+
+            cards_shown.clear();
+            self.as_mut().set_cards_shown(cards_shown);
+            self.as_mut().set_your_turn(true);
+        } else {
+            loop {
+                let picked = self.as_mut().rust_mut().computer.pick_card(number_of_cards);
+                if !self.cards[picked as usize].completed && !self.cards_shown.contains(&picked) {
+                    self.as_mut().rust_mut().cards_shown.insert(picked);
+                    break;
+                }
+            }
+        }
+        self.update_changed();
+    }
 }
 
 impl Default for DeckRust {
@@ -189,6 +247,7 @@ impl Default for DeckRust {
             update: true,
             your_score: 0,
             computer_score: 0,
+            computer: Computer::default(),
         }
     }
 }
