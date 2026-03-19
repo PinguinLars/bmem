@@ -16,7 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-use std::sync::LazyLock;
+use cxx_qt::CxxQtType;
+use cxx_qt_lib::{QSet, QString};
+use rand::{seq::SliceRandom, RngExt};
+use std::{pin::Pin, sync::LazyLock};
 
 pub static CARD_PAIRS: LazyLock<Vec<(Card, Card)>> = LazyLock::new(|| {
     vec![
@@ -58,12 +61,12 @@ pub mod qobject {
     extern "RustQt" {
         #[qobject]
         #[qml_element]
-        #[qproperty(i32, number_of_cards)]
-        #[qproperty(bool, your_turn)]
-        #[qproperty(QSet_i32, cards_shown)]
+        #[qproperty(i32, number_of_cards, cxx_name = "numberOfCards")]
+        #[qproperty(bool, your_turn, cxx_name = "yourTurn")]
+        #[qproperty(QSet_i32, cards_shown, cxx_name = "cardsShown")]
         #[qproperty(bool, update)]
-        #[qproperty(i32, your_score)]
-        #[qproperty(i32, computer_score)]
+        #[qproperty(i32, your_score, cxx_name = "yourScore")]
+        #[qproperty(i32, computer_score, cxx_name = "computerScore")]
         #[namespace = "deck"]
         type Deck = super::DeckRust;
 
@@ -80,11 +83,6 @@ pub mod qobject {
         fn is_card_shown(&self, index: i32) -> bool;
     }
 }
-
-use cxx_qt::CxxQtType;
-use cxx_qt_lib::{QSet, QString};
-use rand::{seq::SliceRandom, RngExt};
-use std::pin::Pin;
 
 /// The Rust struct for the Deck Qt object
 pub struct DeckRust {
@@ -202,9 +200,9 @@ impl Default for DeckRust {
 #[derive(Debug, Clone)]
 pub struct Card {
     /// String that is the value of this card
-    string: QString,
+    pub string: QString,
     /// String of the card this card matches with (can be the same)
-    matching_string: QString,
+    pub matching_string: QString,
     /// If the pair is completed
     completed: bool,
 }

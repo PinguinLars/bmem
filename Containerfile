@@ -9,6 +9,7 @@ RUN ~/.cargo/bin/cargo install cargo-zigbuild
 COPY . /app
 WORKDIR /app
 
+RUN ~/.cargo/bin/cargo build --release
 RUN ~/.cargo/bin/cargo zigbuild --release --target x86_64-pc-windows-gnu
 
 ENTRYPOINT ["/bin/bash"]

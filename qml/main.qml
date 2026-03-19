@@ -44,12 +44,12 @@ ApplicationWindow {
       rowSpacing: 5
 
       Repeater {
-        model: root.deck.number_of_cards
+        model: root.deck.numberOfCards
 
         Rectangle {
           Layout.fillWidth: true
           Layout.fillHeight: true
-          color: ma.containsMouse ? "#607D8B" : "#9E9E9E"
+          color: ma.containsMouse && root.deck.yourTurn ? "#607D8B" : "#9E9E9E"
           radius: 10
 
           MouseArea {
@@ -98,7 +98,7 @@ ApplicationWindow {
           anchors.bottomMargin: 5
           horizontalAlignment: Text.AlignLeft
 
-          text: `Your score: ${root.deck.your_score}/${root.deck.number_of_cards/2}\nComputer score: ${root.deck.computer_score}/${root.deck.number_of_cards/2}`
+          text: `Your score: ${root.deck.yourScore}/${root.deck.numberOfCards/2}\nComputer score: ${root.deck.computerScore}/${root.deck.numberOfCards/2}`
         }
       }
 
@@ -114,7 +114,7 @@ ApplicationWindow {
           anchors.margins: 5
           horizontalAlignment: Text.AlignLeft
 
-          text: `Turn: ${root.deck.your_turn ? "you" : "computer"}` // or you
+          text: `Turn: ${root.deck.yourTurn ? "you" : "computer"}` // or you
         }
       }
 
