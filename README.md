@@ -8,6 +8,15 @@ Een memory spel voor mijn biologie project.
 - [ ] uiteindelijk ook voor andere vakken te kunnen gebruiken
 - [ ] windows
 
+## Windows
+Voor windows heb je msvc nodig, rustup (installeert ook msvc) en qt VOOR MSVC.
+Dan doe je:
+```powershell
+$env:PATH += ";C:\Qt\6.10.2\msvc2022_64\bin"
+$env:RUSTFLAGS="-L C:\Qt\6.10.2\msvc2022\lib" # replace 6.10.2 with your qt version
+cargo build --release
+```
+
 ## License
 Copyright (C) 2026 AshyPinguin
 
